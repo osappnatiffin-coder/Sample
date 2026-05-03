@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFS AI — Flour Mill Website Proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim: #7A6030;
+    --dark: #0D0D0D;
+    --dark2: #141414;
+    --dark3: #1C1C1C;
+    --dark4: #242424;
+    --cream: #F5EDD8;
+    --cream2: #EDE0C4;
+    --text: #D6CDB8;
+    --muted: #7A7468;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 0;
+    border-bottom: 1px solid #2A2A2A;
+    position: relative;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: 0; right: -100px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 2px;
+    margin-bottom: 40px;
+    width: fit-content;
+  }
+  .badge::before { content: ''; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(48px, 7vw, 88px);
+    font-weight: 900;
+    line-height: 1;
+    color: var(--cream);
+    margin-bottom: 24px;
+  }
+  h1 span { color: var(--gold); font-style: italic; }
+  .hero-sub { font-size: 18px; color: var(--muted); max-width: 520px; margin-bottom: 60px; line-height: 1.8; }
+  .hero-meta { display: flex; gap: 48px; padding-top: 40px; border-top: 1px solid #2A2A2A; flex-wrap: wrap; }
+  .meta-item label { display: block; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .meta-item value { display: block; font-size: 16px; color: var(--cream); font-weight: 500; }
+  .meta-item.highlight value { color: var(--gold); font-family: 'Playfair Display', serif; font-size: 20px; }
+  section { padding: 100px 0; border-bottom: 1px solid #1E1E1E; }
+  .section-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 16px; }
+  h2 { font-family: 'Playfair Display', serif; font-size: clamp(32px, 4vw, 48px); color: var(--cream); font-weight: 700; line-height: 1.15; margin-bottom: 32px; }
+  h2 em { color: var(--gold); font-style: italic; }
+  p { color: var(--text); font-size: 16px; margin-bottom: 20px; max-width: 680px; }
+
+  /* FEATURES GRID */
+  .features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; margin-top: 48px; background: #1A1A1A; border: 1px solid #1A1A1A; }
+  .feature-card { background: var(--dark2); padding: 36px; transition: background 0.2s; }
+  .feature-card:hover { background: var(--dark3); }
+  .feature-icon { font-size: 26px; margin-bottom: 16px; }
+  .feature-card h3 { font-size: 15px; font-weight: 600; color: var(--cream); margin-bottom: 8px; }
+  .feature-card p { font-size: 13px; color: var(--muted); line-height: 1.7; margin: 0; }
+  .feat-tag { display: inline-block; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.15); padding: 2px 8px; margin-bottom: 14px; }
+
+  /* BOOKING DEMO */
+  .booking-block {
+    background: linear-gradient(135deg, #141008, #1A1508);
+    border: 1px solid rgba(201,168,76,0.15);
+    padding: 56px;
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .booking-block::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(201,168,76,0.05) 0%, transparent 70%);
+  }
+  .booking-block h3 { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--cream); margin-bottom: 16px; }
+  .booking-block p { font-size: 14px; color: var(--muted); max-width: none; margin-bottom: 0; line-height: 1.8; }
+  .booking-ui { background: var(--dark3); border: 1px solid #2A2A2A; border-radius: 8px; padding: 24px; }
+  .booking-ui .b-header { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #2A2A2A; }
+  .b-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #1A1A1A; font-size: 13px; }
+  .b-row:last-child { border-bottom: none; }
+  .b-label { color: var(--muted); }
+  .b-val { color: var(--cream); font-weight: 500; }
+  .b-status { font-size: 10px; padding: 3px 8px; border-radius: 2px; font-weight: 600; letter-spacing: 1px; }
+  .b-status.confirmed { background: rgba(201,168,76,0.1); color: var(--gold); }
+  .b-status.pending { background: rgba(255,255,255,0.05); color: var(--muted); }
+
+  /* OWNERSHIP */
+  .ownership-block { background: linear-gradient(135deg, #141008, #1A1508); border: 1px solid rgba(201,168,76,0.2); border-radius: 2px; padding: 56px; margin-top: 48px; position: relative; overflow: hidden; }
+  .ownership-block::before { content: ''; position: absolute; top: -80px; right: -80px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(201,168,76,0.05) 0%, transparent 70%); }
+  .ownership-block h3 { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--gold); margin-bottom: 16px; font-style: italic; }
+  .ownership-block p { font-size: 16px; line-height: 1.9; color: var(--cream2); max-width: none; margin-bottom: 0; }
+
+  /* ERP LINK */
+  .erp-callout { background: var(--dark3); border: 1px solid #2A2A2A; border-left: 3px solid var(--gold); padding: 32px 36px; margin-top: 48px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .erp-callout h4 { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--cream); margin-bottom: 6px; }
+  .erp-callout p { font-size: 13px; color: var(--muted); margin: 0; max-width: 480px; }
+  .erp-callout a { display: inline-block; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3); color: var(--gold); font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; padding: 12px 24px; text-decoration: none; white-space: nowrap; }
+
+  /* PRICING */
+  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #1A1A1A; border: 1px solid #1A1A1A; margin-top: 48px; }
+  .price-box { background: var(--dark2); padding: 40px; }
+  .price-box.gold { background: linear-gradient(135deg, #141008, #1C1608); border: 1px solid rgba(201,168,76,0.2); }
+  .plbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+  .pnum { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 900; color: var(--cream); line-height: 1; margin-bottom: 6px; }
+  .price-box.gold .pnum { color: var(--gold); }
+  .psub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .pnote { font-size: 13px; color: var(--muted); padding-top: 20px; border-top: 1px solid #2A2A2A; line-height: 1.7; }
+
+  .includes { display: flex; flex-direction: column; gap: 1px; background: #1A1A1A; border: 1px solid #1A1A1A; margin-top: 1px; }
+  .inc-row { display: flex; align-items: center; gap: 14px; padding: 14px 20px; background: var(--dark3); font-size: 13px; color: var(--text); }
+  .inc-row .dot { width: 5px; height: 5px; background: var(--gold); border-radius: 50%; flex-shrink: 0; }
+
+  .terms-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #1A1A1A; margin-top: 2px; }
+  .term-block { background: var(--dark2); padding: 28px; text-align: center; }
+  .tpct { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--gold); }
+  .tlbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+  .tdesc { font-size: 12px; color: var(--text); margin-top: 6px; }
+
+  footer { padding: 60px 0; text-align: center; }
+  footer .logo { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--gold); font-style: italic; margin-bottom: 12px; }
+  footer p { font-size: 13px; color: var(--muted); text-align: center; margin: 0 auto; }
+
+  @media (max-width: 640px) {
+    .container { padding: 0 24px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .booking-block { grid-template-columns: 1fr; padding: 32px 24px; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .terms-row { grid-template-columns: 1fr; }
+    .erp-callout { flex-direction: column; }
+    .hero-meta { flex-wrap: wrap; gap: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="badge">Website Proposal · Flour Mill Client</div>
+    <h1>Not Just<br>a Website.<br><span>A System.</span></h1>
+    <p class="hero-sub">A custom-built website for your flour mill — with a full booking system, automated reminders, and Google Calendar integration, all connected to your ERP.</p>
+    <div class="hero-meta">
+      <div class="meta-item">
+        <label>Prepared for</label>
+        <value>Flour Mill Client</value>
+      </div>
+      <div class="meta-item">
+        <label>Prepared by</label>
+        <value>BFS AI · bfsai.ca</value>
+      </div>
+      <div class="meta-item highlight">
+        <label>One-Time Build</label>
+        <value>$1,500 – $2,000</value>
+      </div>
+      <div class="meta-item highlight">
+        <label>Monthly Hosting</label>
+        <value>$50 / mo</value>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT WE BUILD -->
+<section>
+  <div class="container">
+    <div class="section-label">What's Included</div>
+    <h2>Everything your<br>website needs to <em>work.</em></h2>
+    <p>This isn't a brochure website. It's a fully functional business tool — designed to bring customers in, book them automatically, and keep them informed without any manual work on your end.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feat-tag">Booking</div>
+        <div class="feature-icon">📅</div>
+        <h3>Complete Booking System</h3>
+        <p>Customers book pickups, deliveries, and orders directly on the website. All bookings flow straight into your ERP automatically — no manual entry, no double work.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-tag">Automation</div>
+        <div class="feature-icon">🔔</div>
+        <h3>Automated Reminders</h3>
+        <p>Booking confirmations, pickup reminders, and payment follow-ups sent automatically to customers via email or SMS. No staff involvement needed.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-tag">Calendar</div>
+        <div class="feature-icon">📆</div>
+        <h3>Google Calendar Integration</h3>
+        <p>Every meeting, delivery, or customer appointment booked through the website syncs directly to your Google Calendar in real time. Nothing falls through the cracks.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-tag">Design</div>
+        <div class="feature-icon">🖥️</div>
+        <h3>Custom Design — Built for You</h3>
+        <p>Mobile-first, fast, and built to represent your brand properly. Not a template. Every page designed around your business and your customers.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-tag">SEO</div>
+        <div class="feature-icon">🔍</div>
+        <h3>SEO Optimized</h3>
+        <p>Built from the ground up to rank locally. Your business shows up when customers in Calgary search for flour suppliers — without paying for ads.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-tag">ERP Link</div>
+        <div class="feature-icon">🔗</div>
+        <h3>Linked to Your ERP</h3>
+        <p>Website and ERP share one system. A customer order on the website instantly updates your inventory and triggers the right alerts inside the ERP.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOOKING DEMO -->
+<section>
+  <div class="container">
+    <div class="section-label">Booking System</div>
+    <h2>Customers book.<br>You get <em>notified.</em></h2>
+    <p>Your customers select a date, fill in their order details, and confirm — all on the website. You get a notification. The ERP updates. Google Calendar syncs. No phone calls needed.</p>
+
+    <div class="booking-block">
+      <div>
+        <h3>The whole flow. Automated.</h3>
+        <p>Customer books on website → confirmation sent to them automatically → booking appears in your ERP → event added to your Google Calendar → reminder sent 24 hours before pickup. All of this happens without you touching anything.</p>
+      </div>
+      <div class="booking-ui">
+        <div class="b-header">Upcoming Bookings</div>
+        <div class="b-row">
+          <div>
+            <div class="b-label" style="font-size:11px; margin-bottom: 2px;">Ahmed Grocery</div>
+            <div class="b-val">50kg Whole Wheat · May 6</div>
+          </div>
+          <div class="b-status confirmed">CONFIRMED</div>
+        </div>
+        <div class="b-row">
+          <div>
+            <div class="b-label" style="font-size:11px; margin-bottom: 2px;">Sunrise Bakery</div>
+            <div class="b-val">100kg All-Purpose · May 7</div>
+          </div>
+          <div class="b-status confirmed">CONFIRMED</div>
+        </div>
+        <div class="b-row">
+          <div>
+            <div class="b-label" style="font-size:11px; margin-bottom: 2px;">New Customer</div>
+            <div class="b-val">25kg Semolina · May 9</div>
+          </div>
+          <div class="b-status pending">PENDING</div>
+        </div>
+        <div class="b-row" style="margin-top: 8px; padding-top: 12px; border-top: 1px solid #2A2A2A; border-bottom: none;">
+          <div class="b-label" style="font-size: 11px;">📆 Synced to Google Calendar</div>
+          <div style="font-size: 11px; color: var(--gold);">✓ Live</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OWNERSHIP -->
+<section>
+  <div class="container">
+    <div class="section-label">Ownership</div>
+    <h2>Your website. <em>Your data.</em></h2>
+    <div class="ownership-block">
+      <h3>"You own everything."</h3>
+      <p>Your website is privately hosted — exclusively for your business. No shared servers, no third-party data access. Every booking, every customer record, every form submission lives on infrastructure that belongs to you. The $50/month covers hosting, all updates, and full maintenance. Once it's built, it's yours.</p>
+    </div>
+
+    <div class="erp-callout">
+      <div>
+        <h4>This is a separate product from the ERP.</h4>
+        <p>The website and ERP are two independent systems that work together. You can take one or both — they're quoted and delivered separately.</p>
+      </div>
+      <a href="flourmill.html">View ERP Proposal →</a>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section>
+  <div class="container">
+    <div class="section-label">Investment</div>
+    <h2>Simple, <em>transparent</em> pricing.</h2>
+    <p>One build fee. One flat monthly rate that covers everything — hosting, updates, maintenance. No surprises.</p>
+
+    <div class="pricing-grid">
+      <div class="price-box gold">
+        <div class="plbl">One-Time Build</div>
+        <div class="pnum">$1,500–$2,000</div>
+        <div class="psub">Complete custom website</div>
+        <div class="pnote">Design, development, booking system, ERP integration, Google Calendar sync, SEO setup — all included in the build fee.</div>
+      </div>
+      <div class="price-box gold">
+        <div class="plbl">Monthly Hosting & Maintenance</div>
+        <div class="pnum">$50<span style="font-size: 22px; color: var(--muted)">/mo</span></div>
+        <div class="psub">Private hosting + all updates</div>
+        <div class="pnote">Private server, SSL, uptime monitoring, content updates, and technical maintenance — all covered. 50% off standard hosting rate, exclusively for you.</div>
+      </div>
+    </div>
+
+    <div class="includes">
+      <div class="inc-row"><span class="dot"></span> Custom designed — not a template</div>
+      <div class="inc-row"><span class="dot"></span> Full booking system with customer-facing scheduling</div>
+      <div class="inc-row"><span class="dot"></span> Automated email & SMS reminders to customers</div>
+      <div class="inc-row"><span class="dot"></span> Google Calendar sync — every booking appears automatically</div>
+      <div class="inc-row"><span class="dot"></span> Linked to your ERP — orders update inventory in real time</div>
+      <div class="inc-row"><span class="dot"></span> SEO optimized from day one</div>
+      <div class="inc-row"><span class="dot"></span> Mobile-first, fast, and secure</div>
+      <div class="inc-row"><span class="dot"></span> Private hosting — your data, nobody else's</div>
+      <div class="inc-row"><span class="dot"></span> All future updates and maintenance included in $50/mo</div>
+    </div>
+
+    <div class="terms-row">
+      <div class="term-block">
+        <div class="tpct">50%</div>
+        <div class="tlbl">Upfront</div>
+        <div class="tdesc">Build begins immediately</div>
+      </div>
+      <div class="term-block">
+        <div class="tpct">50%</div>
+        <div class="tlbl">On Go-Live</div>
+        <div class="tdesc">Paid when live and approved</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="logo">BFS AI</div>
+    <p>Calgary, Alberta · bfsai.ca</p>
+    <br>
+    <p style="color: #1A1A1A; font-size: 12px;">This proposal is prepared exclusively for the recipient.</p>
+  </div>
+</footer>
+
+</body>
+</html>
