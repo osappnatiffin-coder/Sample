@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFS AI — Bottle Depot Marketing & AI Proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Cormorant+Garamond:ital,wght@0,600;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #16A34A;
+    --green-light: #22C55E;
+    --green-dim: #14532D;
+    --lime: #84CC16;
+    --dark: #050A05;
+    --dark2: #080F08;
+    --dark3: #0C160C;
+    --dark4: #111C11;
+    --white: #F0FFF0;
+    --text: #8DAA8D;
+    --muted: #3D5A3D;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 10% 20%, rgba(22,163,74,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 90% 70%, rgba(132,204,22,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 0;
+    border-bottom: 1px solid #0D180D;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(22,163,74,0.08);
+    border: 1px solid rgba(22,163,74,0.2);
+    color: var(--green-light);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    border-radius: 100px;
+    margin-bottom: 44px;
+    width: fit-content;
+  }
+
+  .pill span {
+    width: 6px; height: 6px;
+    background: var(--green-light);
+    border-radius: 50%;
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(50px, 8vw, 96px);
+    font-weight: 600;
+    line-height: 0.95;
+    color: var(--white);
+    margin-bottom: 32px;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--green-light);
+  }
+
+  .hero-desc {
+    font-size: 17px;
+    color: var(--text);
+    max-width: 520px;
+    margin-bottom: 64px;
+    line-height: 1.85;
+    font-weight: 300;
+  }
+
+  .hero-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid #0D1A0D;
+    background: #0D1A0D;
+    gap: 1px;
+  }
+
+  .metric {
+    background: var(--dark2);
+    padding: 24px 20px;
+  }
+
+  .metric-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .metric-num.green { color: var(--green-light); }
+
+  .metric-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  section {
+    padding: 100px 0;
+    border-bottom: 1px solid #0A120A;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--green-dim);
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(34px, 5vw, 54px);
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1.1;
+    margin-bottom: 28px;
+  }
+
+  h2 em { color: var(--green-light); font-style: italic; }
+
+  p {
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 16px;
+    max-width: 640px;
+    line-height: 1.85;
+  }
+
+  /* INSIGHT BLOCK */
+  .insight {
+    background: var(--dark3);
+    border-left: 2px solid var(--green);
+    padding: 28px 32px;
+    margin: 40px 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--white);
+    line-height: 1.6;
+  }
+
+  /* SERVICES */
+  .services-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: #0A120A;
+    border: 1px solid #0A120A;
+    margin-top: 48px;
+  }
+
+  .service-card {
+    background: var(--dark2);
+    padding: 36px;
+    transition: background 0.2s;
+  }
+
+  .service-card:hover { background: var(--dark3); }
+
+  .service-icon { font-size: 26px; margin-bottom: 16px; }
+
+  .service-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 10px;
+  }
+
+  .service-card p {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0;
+    max-width: none;
+    line-height: 1.7;
+  }
+
+  .service-tag {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--green);
+    background: rgba(22,163,74,0.08);
+    border: 1px solid rgba(22,163,74,0.15);
+    padding: 2px 8px;
+    margin-bottom: 12px;
+  }
+
+  /* EMAIL LIST FEATURE */
+  .email-block {
+    background: linear-gradient(135deg, #060E06, #0A160A);
+    border: 1px solid rgba(22,163,74,0.15);
+    padding: 48px;
+    margin-top: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .email-block::after {
+    content: '7,000+';
+    position: absolute;
+    right: 40px; top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 96px;
+    font-weight: 600;
+    color: rgba(22,163,74,0.05);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .email-block h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    color: var(--white);
+    margin-bottom: 16px;
+  }
+
+  .email-block p {
+    max-width: 480px;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 0;
+  }
+
+  /* VOICE AGENT */
+  .voice-block {
+    background: var(--dark2);
+    border: 1px solid #0D1A0D;
+    padding: 48px;
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+
+  .voice-block h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    color: var(--white);
+    margin-bottom: 16px;
+  }
+
+  .voice-block p {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: none;
+    margin-bottom: 0;
+  }
+
+  .call-ui {
+    background: var(--dark3);
+    border: 1px solid #0D1A0D;
+    border-radius: 16px;
+    padding: 24px;
+    font-size: 13px;
+  }
+
+  .call-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #0D1A0D;
+  }
+
+  .call-avatar {
+    width: 36px; height: 36px;
+    background: rgba(22,163,74,0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .call-name { font-size: 13px; color: var(--white); font-weight: 500; }
+  .call-status { font-size: 11px; color: var(--green-light); }
+
+  .chat-bubble {
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 90%;
+  }
+
+  .chat-bubble.ai {
+    background: rgba(22,163,74,0.1);
+    border: 1px solid rgba(22,163,74,0.15);
+    color: var(--white);
+  }
+
+  .chat-bubble.user {
+    background: #0D1A0D;
+    color: var(--text);
+    margin-left: auto;
+  }
+
+  /* PRICING */
+  .price-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: #0A120A;
+    border: 1px solid #0A120A;
+    margin-top: 48px;
+  }
+
+  .pbox {
+    background: var(--dark2);
+    padding: 40px;
+    position: relative;
+  }
+
+  .pbox.yours {
+    background: linear-gradient(135deg, #060E06, #0C180C);
+    border: 1px solid rgba(22,163,74,0.2);
+  }
+
+  .pbox.yours::after {
+    content: 'YOUR PRICE';
+    position: absolute;
+    top: 16px; right: 16px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    background: var(--green-light);
+    color: var(--dark);
+    padding: 3px 10px;
+  }
+
+  .pbox .plbl {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .pbox .pamt {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 52px;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .pbox.yours .pamt { color: var(--green-light); }
+
+  .pbox .pper {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .pbox .pnote {
+    font-size: 13px;
+    color: var(--muted);
+    padding-top: 20px;
+    border-top: 1px solid #0D1A0D;
+    line-height: 1.6;
+  }
+
+  /* WHAT'S INCLUDED LIST */
+  .includes {
+    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: #0A120A;
+    border: 1px solid #0A120A;
+  }
+
+  .inc-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    background: var(--dark2);
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .inc-row span.dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* TERMS */
+  .terms-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: #0A120A;
+    margin-top: 1px;
+  }
+
+  .tbox {
+    background: var(--dark3);
+    padding: 28px;
+    text-align: center;
+  }
+
+  .tpct {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 40px;
+    font-weight: 600;
+    color: var(--green-light);
+  }
+
+  .tlbl {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .tdesc { font-size: 12px; color: var(--text); margin-top: 8px; }
+
+  footer {
+    padding: 60px 0;
+    text-align: center;
+  }
+
+  footer .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-style: italic;
+    color: var(--green-light);
+    margin-bottom: 10px;
+  }
+
+  footer p { font-size: 13px; color: var(--muted); text-align: center; margin: 0 auto; }
+
+  @media (max-width: 640px) {
+    .container { padding: 0 20px; }
+    .hero-metrics { grid-template-columns: 1fr 1fr; }
+    .services-grid { grid-template-columns: 1fr; }
+    .price-compare { grid-template-columns: 1fr; }
+    .terms-row { grid-template-columns: 1fr; }
+    .voice-block { grid-template-columns: 1fr; }
+    .email-block::after { display: none; }
+    h1 { font-size: 52px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="pill"><span></span> Prepared by BFS AI · Calgary</div>
+    <h1>More Customers.<br><em>Less Work.</em></h1>
+    <p class="hero-desc">A complete marketing and AI system for Sage Hill Bottle Depot — built by someone who spent 5 years behind the counter and knows exactly what your customers need.</p>
+
+    <div class="hero-metrics">
+      <div class="metric">
+        <div class="metric-num green">$2,500–$3,000</div>
+        <div class="metric-label">One-time setup</div>
+      </div>
+      <div class="metric">
+        <div class="metric-num">$1,200</div>
+        <div class="metric-label">Per month</div>
+      </div>
+      <div class="metric">
+        <div class="metric-num green">8 channels</div>
+        <div class="metric-label">All managed for you</div>
+      </div>
+      <div class="metric">
+        <div class="metric-num">5 yrs</div>
+        <div class="metric-label">Industry experience</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section>
+  <div class="container">
+    <div class="section-label">Why BFS AI</div>
+    <h2>We don't just do<br><em>marketing.</em> We know depots.</h2>
+    <p>Most agencies research your industry. We lived it. 5 years working inside a bottle depot means we understand your customers — the regulars, the elderly who struggle with digital forms, the ones who just want to call and book a valet drop-off without navigating a website.</p>
+    <p>That's why we build things other agencies wouldn't even think of.</p>
+
+    <div class="insight">
+      "I know your customers better than most people you'd hire to market to them."
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section>
+  <div class="container">
+    <div class="section-label">What We Deliver</div>
+    <h2>A complete system<br>working <em>24/7.</em></h2>
+
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-tag">Ads</div>
+        <div class="service-icon">📢</div>
+        <h3>Google Ads Management</h3>
+        <p>Targeted local search campaigns managed monthly — strategy, copy, bidding, and optimization all handled for you.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-tag">Ads</div>
+        <div class="service-icon">📘</div>
+        <h3>Meta Ads (Facebook & Instagram)</h3>
+        <p>Hyper-local paid campaigns on Facebook and Instagram targeting Calgary-area customers. Retargeting, promotions, seasonal offers — fully managed.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-tag">Reputation</div>
+        <div class="service-icon">⭐</div>
+        <h3>Review Campaign Management</h3>
+        <p>Ongoing review campaigns to your customer list. Negatives filtered privately. Positives pushed to Google. Your rating climbs while competitors wonder how.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-tag">SEO</div>
+        <div class="service-icon">📍</div>
+        <h3>Google My Business Automation</h3>
+        <p>3 SEO-optimized posts per week — photos, offers, updates — all automated, consistent, and driving local search visibility.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-tag">Social</div>
+        <div class="service-icon">📸</div>
+        <h3>Instagram Automation</h3>
+        <p>Matching content pushed to Instagram on the same schedule. Brand stays active and visible without you touching it.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-tag">SEO</div>
+        <div class="service-icon">✍️</div>
+        <h3>Micro Blog Posts</h3>
+        <p>Weekly SEO blog posts on your website — short, targeted, and built to rank locally for bottle depot searches in Calgary.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-tag">Landing Pages · Unlimited</div>
+        <div class="service-icon">🖥️</div>
+        <h3>Unlimited Landing Pages</h3>
+        <p>Need a page for a new promotion, a seasonal campaign, or a Meta Ads push? We build it. No extra charges, no waiting. Every campaign gets its own dedicated, high-converting page.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-tag">Outreach</div>
+        <div class="service-icon">🎯</div>
+        <h3>Custom Promotional Campaigns</h3>
+        <p>Every valet drop-off captures a name, email, and phone number. That list grows every day — and we use it to run targeted promotions, seasonal offers, and re-engagement campaigns on demand.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DATA FLYWHEEL -->
+<section>
+  <div class="container">
+    <div class="section-label">Your Growing Asset</div>
+    <h2>Every booking builds<br>your <em>outreach engine.</em></h2>
+    <p>Every valet drop-off captures a customer's name, email, and phone number. That list grows organically, every single day — without any extra effort from you.</p>
+    <p>We use that data to run targeted promotional campaigns whenever you need them. A seasonal push, a new offer, a slow week you want to fill up — we have a direct line to your customers and we use it.</p>
+
+    <div class="email-block">
+      <h3>Always-On Reputation System</h3>
+      <p>As your customer list grows, so does your review engine. We continuously run reputation campaigns that filter negative feedback privately and push happy customers to leave public Google reviews. Your rating doesn't just spike once — it compounds over time.</p>
+    </div>
+  </div>
+</section>
+
+<!-- AI PACKAGE -->
+<section>
+  <div class="container">
+    <div class="section-label">Complimentary AI Suite</div>
+    <h2>A complete AI front desk.<br><em>On us.</em></h2>
+    <p>Most agencies charge separately for AI capabilities — or don't offer them at all. We include a full AI layer as part of your package, at no extra cost. This is where the real difference is.</p>
+
+    <div class="voice-block">
+      <div>
+        <h3>AI Voice Agent — Valet Booking</h3>
+        <p>A customer calls the depot number. Our AI picks up, has a natural conversation, and books the valet drop-off — capturing their name, date, and contact info automatically. No staff involvement. No missed calls. Runs 24/7.</p>
+        <br>
+        <p style="color: var(--green-light); font-size: 13px; max-width: none;">Market rate for this alone: $300–$500/mo. Included in your package.</p>
+      </div>
+      <div class="call-ui">
+        <div class="call-header">
+          <div class="call-avatar">🤖</div>
+          <div>
+            <div class="call-name">Sage Hill AI Agent</div>
+            <div class="call-status">● Live</div>
+          </div>
+        </div>
+        <div class="chat-bubble ai">"Hi! Thanks for calling Sage Hill Bottle Depot. Would you like to book a valet drop-off?"</div>
+        <div class="chat-bubble user">"Yes, tomorrow morning if possible."</div>
+        <div class="chat-bubble ai">"Perfect! I have 10 AM and 11 AM available. Which works better for you?"</div>
+        <div class="chat-bubble user">"10 AM sounds good."</div>
+        <div class="chat-bubble ai">"Booked! See you tomorrow at 10 AM. 👍"</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #0A120A; border: 1px solid #0A120A; margin-top: 1px;">
+      <div class="service-card">
+        <div class="service-tag">AI · Complimentary</div>
+        <div class="service-icon">💬</div>
+        <h3>Full-Knowledge AI Chatbot</h3>
+        <p>Deployed directly on your website. Answers any question a customer might have — bottle depot hours, accepted items, pricing, valet drop-off info, how the process works — plus books appointments. It knows your business inside out, 24/7.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-tag">AI · Complimentary</div>
+        <div class="service-icon">🤖</div>
+        <h3>AI Content Engine</h3>
+        <p>The GMB posts, Instagram content, and blog posts aren't written manually — they're AI-generated, SEO-optimized, and scheduled automatically. Consistent output at zero extra effort.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section>
+  <div class="container">
+    <div class="section-label">Your Command Centre</div>
+    <h2>Everything in your<br>pocket. <em>Literally.</em></h2>
+    <p>You don't have to call us to know what's happening. You get a live dashboard — accessible from your phone — showing everything at a glance.</p>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #0A120A; border: 1px solid #0A120A; margin-top: 48px;">
+      <div class="service-card" style="text-align: center; padding: 28px 20px;">
+        <div class="service-icon">📊</div>
+        <h3>Ads Performance</h3>
+        <p style="font-size: 12px;">Google & Meta spend, clicks, impressions, and conversions — live.</p>
+      </div>
+      <div class="service-card" style="text-align: center; padding: 28px 20px;">
+        <div class="service-icon">⭐</div>
+        <h3>Review Score</h3>
+        <p style="font-size: 12px;">Your current Google rating and recent reviews, updated in real time.</p>
+      </div>
+      <div class="service-card" style="text-align: center; padding: 28px 20px;">
+        <div class="service-icon">📅</div>
+        <h3>Valet Bookings</h3>
+        <p style="font-size: 12px;">All upcoming drop-offs booked through the AI agent and chatbot.</p>
+      </div>
+      <div class="service-card" style="text-align: center; padding: 28px 20px;">
+        <div class="service-icon">👥</div>
+        <h3>Customer Database</h3>
+        <p style="font-size: 12px;">Every contact captured — emails, phone numbers, booking history.</p>
+      </div>
+      <div class="service-card" style="text-align: center; padding: 28px 20px;">
+        <div class="service-icon">📣</div>
+        <h3>Campaign History</h3>
+        <p style="font-size: 12px;">All outreach and promotional campaigns sent, with open and response rates.</p>
+      </div>
+      <div class="service-card" style="text-align: center; padding: 28px 20px;">
+        <div class="service-icon">📈</div>
+        <h3>Monthly Reports</h3>
+        <p style="font-size: 12px;">Automated summary every month — growth, leads, bookings, and ROI.</p>
+      </div>
+    </div>
+
+    <div class="email-block" style="margin-top: 1px;">
+      <h3>No more chasing your agency for updates.</h3>
+      <p>Everything is visible to you, 24/7, from your phone. You see exactly what's running, what's working, and what's coming. Full transparency, always.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section>
+  <div class="container">
+    <div class="section-label">Investment</div>
+    <h2>Same price.<br><em>Incomparable value.</em></h2>
+    <p>The market rate for a full-stack marketing package like this — without the AI — runs $1,200 to $2,000 a month. We match that price point and add a complete AI suite on top. No other agency in Calgary is doing this.</p>
+
+    <div class="price-compare">
+      <div class="pbox">
+        <div class="plbl">Typical Agency Package</div>
+        <div class="pamt">$1,200–$2,000</div>
+        <div class="pper">Per month · Standard marketing</div>
+        <div class="pnote">Google Ads, basic social media management, reputation monitoring. No AI. No automation. No voice agent. No chatbot. Generic strategy, generic results.</div>
+      </div>
+      <div class="pbox yours">
+        <div class="plbl">BFS AI Full Package</div>
+        <div class="pamt">$1,200</div>
+        <div class="pper">Per month · Marketing + complete AI suite</div>
+        <div class="pnote">Everything a standard agency does — plus Google & Meta Ads, AI voice agent, website chatbot, AI content engine, automated review campaigns, and custom promotional campaigns. All for the same price.</div>
+      </div>
+    </div>
+
+    <div class="includes">
+      <div class="inc-row"><span class="dot"></span> One-time setup fee: $2,500–$3,000 (landing pages, chatbot, voice agent, dashboard, all automations)</div>
+      <div class="inc-row"><span class="dot"></span> Monthly retainer: $1,200 — Google Ads + Meta Ads + GMB + Instagram + SEO blogs + reputation management</div>
+      <div class="inc-row"><span class="dot"></span> Unlimited landing pages — any campaign, any time, no extra charge</div>
+      <div class="inc-row"><span class="dot"></span> Full-knowledge AI chatbot deployed on your website — valet booking + all customer FAQs</div>
+      <div class="inc-row"><span class="dot"></span> AI voice agent for valet booking — complimentary, included in package</div>
+      <div class="inc-row"><span class="dot"></span> Live client dashboard — ads, reviews, bookings, customer database, all from your phone</div>
+      <div class="inc-row"><span class="dot"></span> Custom promotional campaigns using your growing customer database — on demand</div>
+      <div class="inc-row"><span class="dot"></span> No long-term contract — month to month after setup</div>
+    </div>
+
+    <div class="terms-row">
+      <div class="tbox">
+        <div class="tpct">50%</div>
+        <div class="tlbl">Upfront</div>
+        <div class="tdesc">Setup begins immediately</div>
+      </div>
+      <div class="tbox">
+        <div class="tpct">50%</div>
+        <div class="tlbl">On Go-Live</div>
+        <div class="tdesc">Everything live and approved</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="logo">BFS AI</div>
+    <p>Calgary, Alberta · bfsai.com</p>
+    <br>
+    <p style="color: #0D1A0D; font-size: 12px;">This proposal is prepared exclusively for the recipient. Pricing reflects a foundational partnership rate.</p>
+  </div>
+</footer>
+
+</body>
+</html>

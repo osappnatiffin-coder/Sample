@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFS AI — Flour Mill ERP Proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim: #7A6030;
+    --dark: #0D0D0D;
+    --dark2: #141414;
+    --dark3: #1C1C1C;
+    --dark4: #242424;
+    --cream: #F5EDD8;
+    --cream2: #EDE0C4;
+    --text: #D6CDB8;
+    --muted: #7A7468;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 0;
+    position: relative;
+    border-bottom: 1px solid #2A2A2A;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: 0; right: -100px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 2px;
+    margin-bottom: 40px;
+    width: fit-content;
+  }
+
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(48px, 7vw, 88px);
+    font-weight: 900;
+    line-height: 1;
+    color: var(--cream);
+    margin-bottom: 24px;
+  }
+
+  .hero h1 span {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 520px;
+    margin-bottom: 60px;
+    line-height: 1.8;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 48px;
+    padding-top: 40px;
+    border-top: 1px solid #2A2A2A;
+  }
+
+  .meta-item label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .meta-item value {
+    display: block;
+    font-size: 16px;
+    color: var(--cream);
+    font-weight: 500;
+  }
+
+  .meta-item.highlight value {
+    color: var(--gold);
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+  }
+
+  /* SECTIONS */
+  section {
+    padding: 100px 0;
+    border-bottom: 1px solid #1E1E1E;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 4vw, 48px);
+    color: var(--cream);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 32px;
+  }
+
+  h2 em {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  p {
+    color: var(--text);
+    font-size: 16px;
+    margin-bottom: 20px;
+    max-width: 680px;
+  }
+
+  /* COMPARISON TABLE */
+  .comparison {
+    margin-top: 48px;
+    border: 1px solid #2A2A2A;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .comparison-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    background: #141414;
+    padding: 16px 24px;
+    border-bottom: 1px solid #2A2A2A;
+  }
+
+  .comparison-header span {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .comparison-header span:last-child {
+    color: var(--gold);
+  }
+
+  .comparison-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    padding: 18px 24px;
+    border-bottom: 1px solid #1A1A1A;
+    align-items: center;
+    transition: background 0.2s;
+  }
+
+  .comparison-row:hover { background: #141414; }
+  .comparison-row:last-child { border-bottom: none; }
+
+  .comparison-row .feature { font-size: 15px; color: var(--text); }
+
+  .comparison-row .val {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .comparison-row .val.yes { color: var(--gold); font-weight: 500; }
+  .comparison-row .val.no { color: #3A3A3A; }
+  .comparison-row .val.partial { color: #6A6A6A; }
+
+  .tick::before { content: '✓ '; }
+  .cross::before { content: '✗ '; color: #3A3A3A; }
+
+  /* FEATURES GRID */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    margin-top: 48px;
+    background: #1A1A1A;
+    border: 1px solid #1A1A1A;
+  }
+
+  .feature-card {
+    background: var(--dark2);
+    padding: 32px;
+    transition: background 0.2s;
+  }
+
+  .feature-card:hover { background: var(--dark3); }
+
+  .feature-icon {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .feature-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cream);
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+  }
+
+  .feature-card p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* OWNERSHIP BLOCK */
+  .ownership-block {
+    background: linear-gradient(135deg, #141008 0%, #1A1508 50%, #0D0D0D 100%);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 4px;
+    padding: 60px;
+    margin-top: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ownership-block::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+  }
+
+  .ownership-block h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--gold);
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  .ownership-block p {
+    font-size: 17px;
+    line-height: 1.9;
+    color: var(--cream2);
+    max-width: 600px;
+  }
+
+  /* PRICING */
+  .pricing-block {
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: #1A1A1A;
+  }
+
+  .price-card {
+    background: var(--dark2);
+    padding: 40px;
+  }
+
+  .price-card.featured {
+    background: linear-gradient(135deg, #141008, #1C1608);
+    border: 1px solid rgba(201,168,76,0.25);
+    position: relative;
+  }
+
+  .price-card.featured::before {
+    content: 'YOUR PRICE';
+    position: absolute;
+    top: 16px; right: 16px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    background: var(--gold);
+    color: var(--dark);
+    padding: 4px 10px;
+    font-weight: 700;
+  }
+
+  .price-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .price-amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 52px;
+    font-weight: 900;
+    color: var(--cream);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .price-card.featured .price-amount { color: var(--gold); }
+
+  .price-period {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  .price-note {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    padding-top: 24px;
+    border-top: 1px solid #2A2A2A;
+  }
+
+  /* PAYMENT TERMS */
+  .terms-row {
+    display: flex;
+    gap: 2px;
+    margin-top: 24px;
+    background: #1A1A1A;
+  }
+
+  .term-block {
+    flex: 1;
+    background: var(--dark2);
+    padding: 28px;
+    text-align: center;
+  }
+
+  .term-block .pct {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .term-block .term-label {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .term-block .term-desc {
+    font-size: 13px;
+    color: var(--text);
+    margin-top: 8px;
+  }
+
+  /* TIMELINE */
+  .timeline {
+    margin-top: 48px;
+    position: relative;
+    padding-left: 40px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 8px; bottom: 8px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 40px;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -36px; top: 6px;
+    width: 8px; height: 8px;
+    background: var(--gold);
+    border-radius: 50%;
+  }
+
+  .timeline-item h4 {
+    font-size: 15px;
+    color: var(--cream);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .timeline-item p {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0;
+    max-width: 500px;
+  }
+
+  .phase-badge {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.2);
+    padding: 2px 8px;
+    margin-bottom: 8px;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 60px 0;
+    text-align: center;
+  }
+
+  footer .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--gold);
+    font-style: italic;
+    margin-bottom: 12px;
+  }
+
+  footer p {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .divider {
+    width: 60px;
+    height: 1px;
+    background: var(--gold-dim);
+    margin: 40px 0;
+  }
+
+  /* ANIMATE IN */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: fadeUp 0.8s forwards;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.25s; }
+  .delay-3 { animation-delay: 0.4s; }
+  .delay-4 { animation-delay: 0.55s; }
+
+  @media (max-width: 640px) {
+    .container { padding: 0 24px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .pricing-block { grid-template-columns: 1fr; }
+    .comparison-header, .comparison-row { grid-template-columns: 1.5fr 1fr 1fr; }
+    .hero-meta { flex-wrap: wrap; gap: 28px; }
+    .ownership-block { padding: 32px 24px; }
+    .terms-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="badge fade-in">Prepared by BFS AI · Calgary</div>
+    <h1 class="fade-in delay-1">Your Business.<br><span>Your Software.</span><br>Your Data.</h1>
+    <p class="hero-sub fade-in delay-2">A custom ERP built exclusively for your flour mill operation — designed around how you actually work, not a generic template.</p>
+    <div class="hero-meta fade-in delay-3">
+      <div class="meta-item">
+        <label>Prepared for</label>
+        <value>Flour Mill Client</value>
+      </div>
+      <div class="meta-item">
+        <label>Prepared by</label>
+        <value>BFS AI</value>
+      </div>
+      <div class="meta-item highlight">
+        <label>One-Time Investment</label>
+        <value>$5,000 – $6,000</value>
+      </div>
+      <div class="meta-item highlight">
+        <label>Monthly (Maintenance)</label>
+        <value>$25 / mo</value>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY NOT QUICKBOOKS -->
+<section>
+  <div class="container">
+    <div class="section-label">The Problem</div>
+    <h2>QuickBooks was not built<br>for a <em>flour mill.</em></h2>
+    <p>QuickBooks is a generic accounting tool. It doesn't know your raw materials, your production rates, your grain inventory, or your customer delivery schedules. You end up bending your business to fit their software.</p>
+    <p>We flip that. We build the software around <em>your</em> business.</p>
+
+    <div class="comparison">
+      <div class="comparison-header">
+        <span>Feature</span>
+        <span>QuickBooks</span>
+        <span>BFS AI ERP</span>
+      </div>
+      <div class="comparison-row">
+        <span class="feature">Built for flour mill operations</span>
+        <span class="val cross no">✗ Generic</span>
+        <span class="val tick yes">✓ Custom</span>
+      </div>
+      <div class="comparison-row">
+        <span class="feature">Raw material & grain inventory</span>
+        <span class="val cross no">✗ No</span>
+        <span class="val tick yes">✓ Yes</span>
+      </div>
+      <div class="comparison-row">
+        <span class="feature">Production rate tracking</span>
+        <span class="val cross no">✗ No</span>
+        <span class="val tick yes">✓ Yes</span>
+      </div>
+      <div class="comparison-row">
+        <span class="feature">Daily AI reports & summaries</span>
+        <span class="val cross no">✗ No</span>
+        <span class="val tick yes">✓ Yes</span>
+      </div>
+      <div class="comparison-row">
+        <span class="feature">Ask "what happened today?" in plain language</span>
+        <span class="val cross no">✗ No</span>
+        <span class="val tick yes">✓ Yes</span>
+      </div>
+      <div class="comparison-row">
+        <span class="feature">Customer appointment manager</span>
+        <span class="val partial">Partial</span>
+        <span class="val tick yes">✓ Built-in</span>
+      </div>
+      <div class="comparison-row">
+        <span class="feature">Banking integration (view accounts)</span>
+        <span class="val tick yes">✓ Yes</span>
+        <span class="val tick yes">✓ Yes</span>
+      </div>
+      <div class="comparison-row">
+        <span class="feature">You own your database</span>
+        <span class="val cross no">✗ They own it</span>
+        <span class="val tick yes">✓ 100% yours</span>
+      </div>
+      <div class="comparison-row">
+        <span class="feature">Can add features anytime</span>
+        <span class="val cross no">✗ Their roadmap</span>
+        <span class="val tick yes">✓ On demand</span>
+      </div>
+      <div class="comparison-row">
+        <span class="feature">Setup cost</span>
+        <span class="val">~$1,500</span>
+        <span class="val yes">$5,000–$6,000</span>
+      </div>
+      <div class="comparison-row">
+        <span class="feature">Monthly fee</span>
+        <span class="val">$70 / mo forever</span>
+        <span class="val yes">$25 / mo (just maintenance)</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <p style="color: var(--muted); font-size: 14px;">In 3 years, QuickBooks costs you $1,500 + ($70 × 36) = <strong style="color:#888">$4,020</strong> for software that doesn't fit your business. BFS AI costs $5,000 + ($25 × 36) = <strong style="color: var(--gold)">$5,900</strong> for software built exactly for you — that you own forever.</p>
+  </div>
+</section>
+
+<!-- WHAT WE BUILD -->
+<section>
+  <div class="container">
+    <div class="section-label">What's Included</div>
+    <h2>Everything your<br>operation <em>needs.</em></h2>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🌾</div>
+        <h3>Raw Material Inventory</h3>
+        <p>Track grain coming in, flour going out, production rates, and stock levels in real time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Daily Reports & AI Summaries</h3>
+        <p>Every morning, get a plain-English summary of yesterday — sales, production, inventory, and anomalies.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <h3>Ask Your Business Anything</h3>
+        <p>"What was our best selling flour last week?" — just ask. The AI answers instantly from your own data.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <h3>Customer Management</h3>
+        <p>Full customer profiles, purchase history, outstanding balances, and communication logs in one place.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📅</div>
+        <h3>Appointment Manager</h3>
+        <p>Schedule customer pickups and deliveries, send automated reminders, and never miss a booking.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💳</div>
+        <h3>Banking Integration</h3>
+        <p>View your account balances and transactions directly inside the app — no switching between tools.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <h3>Sales Tracking</h3>
+        <p>Sales in, sales out, revenue by product type, and trends over time — all visualized clearly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <h3>Smart Alerts & Reminders</h3>
+        <p>Low stock alerts, overdue payments, upcoming appointments — automated so nothing slips through.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OWNERSHIP -->
+<section>
+  <div class="container">
+    <div class="section-label">Data Ownership</div>
+    <h2>This is <em>your</em> software.<br>Not ours. Not anyone else's.</h2>
+
+    <div class="ownership-block">
+      <h3>"You own everything."</h3>
+      <p>Your database is private and hosted exclusively for your business. No third party has access to your data — not us, not any SaaS company. Every customer record, every transaction, every report lives on a server that belongs to you.</p>
+      <br>
+      <p>The monthly fee is purely for maintenance and keeping everything running smoothly. Once we build it, it's yours. And because it's yours — any new feature you need, we build it. No waiting on a company's product roadmap.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section>
+  <div class="container">
+    <div class="section-label">Investment</div>
+    <h2>Simple, <em>transparent</em> pricing.</h2>
+    <p>No hidden fees. No annual contracts. No "per user" charges. One build, one price, yours forever.</p>
+
+    <div class="pricing-block">
+      <div class="price-card">
+        <div class="price-label">Market Rate</div>
+        <div class="price-amount">$9,500<span style="font-size:24px; color: var(--muted)">+</span></div>
+        <div class="price-period">One-time setup · $400–600/mo support</div>
+        <div class="price-note">Standard rate for a custom ERP of this scope and complexity.</div>
+      </div>
+      <div class="price-card featured">
+        <div class="price-label">Your Price</div>
+        <div class="price-amount">$5,000–$6,000</div>
+        <div class="price-period">One-time setup · $25/mo maintenance only</div>
+        <div class="price-note">This is a foundational partnership price. We're investing in a long-term relationship, not a one-time transaction.</div>
+      </div>
+    </div>
+
+    <div class="terms-row">
+      <div class="term-block">
+        <div class="pct">50%</div>
+        <div class="term-label">Upfront</div>
+        <div class="term-desc">Paid before build begins</div>
+      </div>
+      <div class="term-block">
+        <div class="pct">50%</div>
+        <div class="term-label">On Delivery</div>
+        <div class="term-desc">Paid when live and approved</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section>
+  <div class="container">
+    <div class="section-label">How It Works</div>
+    <h2>From deposit to <em>live</em> system.</h2>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="phase-badge">Week 1</div>
+        <h4>Discovery & Blueprint</h4>
+        <p>We sit down, map out every workflow, every report, every screen you need. Nothing is assumed.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="phase-badge">Week 2–3</div>
+        <h4>Core Build</h4>
+        <p>Inventory, sales, customer management, and daily reporting are built and functional.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="phase-badge">Week 4</div>
+        <h4>AI Layer + Banking</h4>
+        <p>AI summaries, plain-language query, and banking integration are connected and tested.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="phase-badge">Week 5</div>
+        <h4>Review & Refinement</h4>
+        <p>You test everything, we fix everything. No shortcuts here.</p>
+      </div>
+      <div class="timeline-item">
+        <div class="phase-badge">Week 6</div>
+        <h4>Go Live</h4>
+        <p>Full handover, training, and final payment. Your system, your data, running live.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="logo">BFS AI</div>
+    <p>Calgary, Alberta · bfsai.com</p>
+    <br>
+    <p style="color: #3A3A3A; font-size: 12px;">This proposal is prepared exclusively for the recipient. Pricing reflects a foundational partnership rate.</p>
+  </div>
+</footer>
+
+</body>
+</html>
