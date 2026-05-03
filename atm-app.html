@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFS AI — ATM Reconciliation App Proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #2563EB;
+    --blue-light: #3B82F6;
+    --blue-dim: #1E3A5F;
+    --dark: #060B14;
+    --dark2: #0A1020;
+    --dark3: #0F1828;
+    --dark4: #162035;
+    --white: #F0F4FF;
+    --text: #94A3C0;
+    --muted: #4A5A78;
+    --accent: #38BDF8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(37,99,235,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(56,189,248,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 0;
+    border-bottom: 1px solid #0F1F35;
+    position: relative;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 40px;
+  }
+
+  .tag::before {
+    content: '';
+    width: 32px; height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(44px, 7vw, 80px);
+    font-weight: 800;
+    line-height: 1.0;
+    color: var(--white);
+    margin-bottom: 28px;
+    letter-spacing: -2px;
+  }
+
+  h1 .accent { color: var(--accent); }
+
+  .hero-desc {
+    font-size: 17px;
+    color: var(--text);
+    max-width: 500px;
+    margin-bottom: 60px;
+    line-height: 1.8;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 0;
+    border: 1px solid #0F1F35;
+  }
+
+  .stat {
+    flex: 1;
+    padding: 28px 32px;
+    border-right: 1px solid #0F1F35;
+  }
+
+  .stat:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: -1px;
+  }
+
+  .stat-num.blue { color: var(--accent); }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  section {
+    padding: 100px 0;
+    border-bottom: 1px solid #0A1520;
+  }
+
+  .section-tag {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--blue-light);
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(30px, 4vw, 44px);
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 32px;
+  }
+
+  h2 .accent { color: var(--accent); }
+
+  p {
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 16px;
+    max-width: 660px;
+    line-height: 1.8;
+  }
+
+  /* PROBLEM CARDS */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: #0A1520;
+    margin-top: 48px;
+    border: 1px solid #0A1520;
+  }
+
+  .problem-card {
+    background: var(--dark2);
+    padding: 32px;
+  }
+
+  .problem-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 800;
+    color: #0F1F35;
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .problem-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .problem-card p {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0;
+    max-width: none;
+  }
+
+  /* HOW IT WORKS */
+  .flow {
+    margin-top: 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: #0A1520;
+    border: 1px solid #0A1520;
+  }
+
+  .flow-step {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 0;
+    background: var(--dark2);
+    align-items: stretch;
+  }
+
+  .flow-num {
+    background: var(--dark3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--blue-light);
+    border-right: 1px solid #0A1520;
+  }
+
+  .flow-content {
+    padding: 24px 32px;
+  }
+
+  .flow-content h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+
+  .flow-content p {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0;
+    max-width: none;
+  }
+
+  /* FEATURES */
+  .features-list {
+    margin-top: 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: #0A1520;
+    border: 1px solid #0A1520;
+  }
+
+  .feat-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px 28px;
+    background: var(--dark2);
+    transition: background 0.2s;
+  }
+
+  .feat-row:hover { background: var(--dark3); }
+
+  .feat-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .feat-row h4 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+
+  .feat-row p {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0;
+    max-width: none;
+  }
+
+  /* ACCOUNTABILITY */
+  .accountability-block {
+    background: var(--dark2);
+    border: 1px solid #0F1F35;
+    border-left: 3px solid var(--accent);
+    padding: 40px;
+    margin-top: 48px;
+  }
+
+  .accountability-block h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+
+  .accountability-block p {
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 0;
+    max-width: none;
+  }
+
+  /* PRICING */
+  .price-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: #0A1520;
+    border: 1px solid #0A1520;
+    margin-top: 48px;
+  }
+
+  .price-box {
+    background: var(--dark2);
+    padding: 40px;
+    position: relative;
+  }
+
+  .price-box.yours {
+    background: linear-gradient(135deg, #060F20, #0A1830);
+    border: 1px solid rgba(56,189,248,0.2);
+  }
+
+  .price-box.yours::after {
+    content: 'YOUR PRICE';
+    position: absolute;
+    top: 16px; right: 16px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    background: var(--accent);
+    color: var(--dark);
+    padding: 3px 10px;
+  }
+
+  .price-box .plabel {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .price-box .pnum {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .price-box.yours .pnum { color: var(--accent); }
+
+  .price-box .psub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .price-box .pnote {
+    font-size: 13px;
+    color: var(--muted);
+    padding-top: 20px;
+    border-top: 1px solid #0F1F35;
+    line-height: 1.6;
+  }
+
+  .terms-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: #0A1520;
+    margin-top: 1px;
+  }
+
+  .term-box {
+    background: var(--dark3);
+    padding: 28px;
+    text-align: center;
+  }
+
+  .term-pct {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .term-lbl {
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .term-desc {
+    font-size: 12px;
+    color: var(--text);
+    margin-top: 8px;
+  }
+
+  /* OWNERSHIP */
+  .own-block {
+    background: linear-gradient(135deg, #060F20, #060B14);
+    border: 1px solid rgba(56,189,248,0.15);
+    padding: 56px;
+    margin-top: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .own-block::before {
+    content: '';
+    position: absolute;
+    bottom: -60px; right: -60px;
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(56,189,248,0.06) 0%, transparent 70%);
+  }
+
+  .own-block h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+  }
+
+  .own-block p {
+    font-size: 16px;
+    line-height: 1.9;
+    color: var(--text);
+    max-width: none;
+    margin-bottom: 0;
+  }
+
+  footer {
+    padding: 60px 0;
+    text-align: center;
+  }
+
+  footer .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+  }
+
+  footer p { font-size: 13px; color: var(--muted); text-align: center; margin: 0 auto; }
+
+  @media (max-width: 640px) {
+    .container { padding: 0 20px; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .price-split { grid-template-columns: 1fr; }
+    .terms-grid { grid-template-columns: 1fr; }
+    .stats-row { flex-direction: column; }
+    .stat { border-right: none; border-bottom: 1px solid #0F1F35; }
+    .own-block { padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="tag">Prepared by BFS AI · Calgary</div>
+    <h1>No More<br>Missing <span class="accent">Cash.</span></h1>
+    <p class="hero-desc">A custom ATM reconciliation app that tells you exactly how much money should be in every machine — and who is responsible if it's not.</p>
+
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-num blue">$2,500–$3,000</div>
+        <div class="stat-label">One-time build</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">$50</div>
+        <div class="stat-label">Per depot / month</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num blue">100%</div>
+        <div class="stat-label">Your data, your ownership</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THE PROBLEM -->
+<section>
+  <div class="container">
+    <div class="section-tag">The Problem</div>
+    <h2>You know money is missing.<br>You just don't know <span class="accent">who.</span></h2>
+    <p>Every time the ATM is refilled, there's a gap a couple days later. Someone put money in — but the numbers don't match. Without a system, there's no accountability. Just finger-pointing.</p>
+
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="problem-num">01</div>
+        <h3>No Paper Trail</h3>
+        <p>Cash loads are done informally. No record of who put in what, when.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-num">02</div>
+        <h3>Manual Counting Errors</h3>
+        <p>Counting bills and coins by hand leaves room for honest mistakes and dishonest ones.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-num">03</div>
+        <h3>No Daily Baseline</h3>
+        <p>Without a daily expected balance, you never know if the machine is short until it's too late.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section>
+  <div class="container">
+    <div class="section-tag">How It Works</div>
+    <h2>Simple. <span class="accent">Accountable.</span> Automated.</h2>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <h4>Staff loads the ATM</h4>
+          <p>They log in with their profile and enter the exact cash loaded — $100s, $50s, $20s, $10s, $5s, loonies, toonies. Their name is permanently attached to that load.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <h4>End of day — snap a photo of the receipt</h4>
+          <p>The daily payout receipt is photographed. Our AI reads it automatically and extracts the exact amounts paid out to customers that day.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-content">
+          <h4>Daily reconciliation report generated</h4>
+          <p>The app calculates: loaded in − paid out = expected balance. You see exactly what should be in the machine right now.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-content">
+          <h4>Discrepancy? You know exactly who to ask.</h4>
+          <p>Every load is tied to a staff profile. If money is missing, the audit trail shows who loaded, how much, and when. No more guessing.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-content">
+          <h4>Refill prediction</h4>
+          <p>Based on daily payout patterns, the app tells you when each machine will need a refill — before it runs out.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section>
+  <div class="container">
+    <div class="section-tag">Features</div>
+    <h2>Everything built <span class="accent">for you.</span></h2>
+
+    <div class="features-list">
+      <div class="feat-row">
+        <div class="feat-icon">👤</div>
+        <div>
+          <h4>Staff Profiles & Login</h4>
+          <p>Every staff member has their own account. Every action they take is logged under their name.</p>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="feat-icon">💵</div>
+        <div>
+          <h4>Detailed Cash Entry</h4>
+          <p>Bills and coins broken down individually. No rounding, no estimates. Exact figures every time.</p>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="feat-icon">📸</div>
+        <div>
+          <h4>AI Receipt Scanner</h4>
+          <p>Photo of the end-of-day receipt → AI reads it → numbers extracted automatically. No manual entry needed.</p>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="feat-icon">📊</div>
+        <div>
+          <h4>Daily Reconciliation Reports</h4>
+          <p>Loaded vs paid out vs expected. Clear, simple, and automated every single day.</p>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="feat-icon">⚠️</div>
+        <div>
+          <h4>Discrepancy Alerts</h4>
+          <p>If numbers don't match, the owner gets notified immediately — with the full audit trail attached.</p>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="feat-icon">🔮</div>
+        <div>
+          <h4>Refill Predictions</h4>
+          <p>Based on your daily payout averages, the app predicts when each machine needs to be topped up.</p>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="feat-icon">🏪</div>
+        <div>
+          <h4>Multi-Depot Ready</h4>
+          <p>Works across all your locations from a single dashboard. Each depot tracked independently.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="accountability-block">
+      <h3>Peace of mind for the owner.</h3>
+      <p>You're not blaming anyone. You're not guessing. You simply open the app, look at the report, and know exactly what happened — and who was responsible. That's not a confrontation tool. That's a management tool.</p>
+    </div>
+  </div>
+</section>
+
+<!-- OWNERSHIP -->
+<section>
+  <div class="container">
+    <div class="section-tag">Data Ownership</div>
+    <h2>Your depots. <span class="accent">Your data.</span></h2>
+
+    <div class="own-block">
+      <h3>Nobody touches your database but you.</h3>
+      <p>Every cash entry, every staff record, every daily report — stored in a private database hosted exclusively for your business. No third party has access. Not us, not anyone. The monthly fee is purely for keeping the system running and updated. Once it's built, it belongs to you completely.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section>
+  <div class="container">
+    <div class="section-tag">Investment</div>
+    <h2>One build. <span class="accent">Every depot.</span></h2>
+    <p>One-time build covers all your locations. Monthly fee per depot keeps everything running.</p>
+
+    <div class="price-split">
+      <div class="price-box">
+        <div class="plabel">Market Rate</div>
+        <div class="pnum">$3,500+</div>
+        <div class="psub">One-time build · $200/mo support</div>
+        <div class="pnote">Standard rate for a custom multi-location cash management app.</div>
+      </div>
+      <div class="price-box yours">
+        <div class="plabel">Your Price</div>
+        <div class="pnum">$2,500–$3,000</div>
+        <div class="psub">One-time build · $50/mo per depot</div>
+        <div class="pnote">Foundational partnership pricing. You get the full system at cost, because we're building a long-term relationship.</div>
+      </div>
+    </div>
+
+    <div class="terms-grid">
+      <div class="term-box">
+        <div class="term-pct">50%</div>
+        <div class="term-lbl">Upfront</div>
+        <div class="term-desc">Paid before build begins</div>
+      </div>
+      <div class="term-box">
+        <div class="term-pct">50%</div>
+        <div class="term-lbl">On Delivery</div>
+        <div class="term-desc">Paid when live and approved</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="logo">BFS AI</div>
+    <p>Calgary, Alberta · bfsai.com</p>
+    <br>
+    <p style="color: #1A2A3A; font-size: 12px;">This proposal is prepared exclusively for the recipient. Pricing reflects a foundational partnership rate.</p>
+  </div>
+</footer>
+
+</body>
+</html>
